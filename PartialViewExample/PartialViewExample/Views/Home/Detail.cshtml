@@ -1,0 +1,120 @@
+﻿@model PartialViewExample.Models.DetailViewModel
+@{
+    ViewBag.Title = "Detail";
+}
+
+<div>
+    <h2>Detail</h2>
+    <div class="jumbotron">
+        <p>@Model.Master.Id</p>
+        <p>@Model.Master.No</p>
+    </div>
+    <div id="partailPanel">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Details)
+                {
+                    <tr>
+                        <th>@item.Id</th>
+                        <td>@item.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @Html.Hidden("NowPage", @ViewData["NowPage"])
+    </div>
+    @Html.Hidden("TotalPage", @ViewData["TotalPage"])
+    <div class="text-center">
+        <nav aria-label="...">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link" href="#" id="previous">Previous</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#" id="next">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+
+
+
+
+
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+            function init() {
+
+                $('#previous').on('click', function () {
+                    
+                    var page = Number($('#NowPage').val());
+                    if (page == 1)
+                        return;
+                    MyAjaxCall(page - 1);
+                });
+                $('#next').on('click', function () {
+                    var totalPage = Number($('#TotalPage').val());
+                    var page = Number($('#NowPage').val());
+                    if  (page == totalPage)
+                        return;
+                    MyAjaxCall(page + 1);
+                });
+            }
+
+
+            function MyAjaxCall(page) {
+                var data = {
+                    "Page": page ,
+                    "SearchKey": "test123",
+                    "PageNum": 10
+                };
+                $.ajax({
+                    type: "post",
+                    url: "@Url.Action("DetailPartialView","Home")",
+                    data: JSON.stringify(data),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: "html",
+                    //cache: false, //防止ie8一直取到舊資料的話，請設定為false
+                    success: function (result) {
+                        $("#partailPanel").html(result);
+                        buttonInit();
+                    },
+                    error: function (error) {
+                        console.error(error);
+                    }
+                });
+            }
+
+            function buttonInit() { 
+                var page = Number($('#NowPage').val());
+                var totalPage = Number($('#TotalPage').val());
+                buttonCtrl((page == 1), '#previous');
+                buttonCtrl((page == totalPage), '#next');
+            }
+
+            function buttonCtrl(flag, id) {
+                if (flag) {
+                    $(id).parent().addClass("disabled");
+                } else {
+                    $(id).parent().removeClass("disabled");
+                }
+            }
+
+            //init
+
+            init();
+            buttonInit();
+        });
+    </script>
+}
